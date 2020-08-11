@@ -303,6 +303,32 @@ if [ "$1" = "install" ];then
     install_$2
 elif [ "$1" = "uninstall" ];then
     uninstall_$2
+elif [ "$1" = "backup" ];then
+    rm -rf /tmp/backup
+    mkdir -p /tmp/backup
+    pushd /tmp/backup > /dev/null
+    for s in ${@:3};do
+        cp -r /usr/local/etc/$s ./
+        echo "$s copied"
+    done
+    tar -czf backup.tar.gz ./*
+    popd > /dev/null
+    mv /tmp/backup/backup.tar.gz $2
+    rm -rf /tmp/backup
+    echo "backup complete"
+elif [ "$1" = "restore" ];then
+    rm -rf /tmp/backup
+    mkdir -p /tmp/backup
+    tar -xzf $2 -C /tmp/backup
+    pushd /tmp/backup > /dev/null
+    for s in $(ls);do
+        rm -rf /usr/local/etc/$s
+        mv $s /usr/local/etc/
+        echo "$s restored"
+    done
+    popd > /dev/null
+    rm -rf /tmp/backup
+    echo "restore complete"
 else
     echo "unsupported command:" $1
 fi
